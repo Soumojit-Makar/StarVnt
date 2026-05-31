@@ -134,10 +134,13 @@ export default function ProfileForm({ defaults }: ProfileFormProps) {
               onChange={handleChange}
               required
               className="input pl-9 appearance-none"
+              style={{ backgroundColor: "#111111", colorScheme: "dark" }}
             >
-              <option value="">Select a category</option>
+              <option value="" style={{ background: "#1a1a1a", color: "#fff" }}>
+                Select a category
+              </option>
               {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
+                <option key={c} value={c} style={{ background: "#1a1a1a", color: "#fff" }}>
                   {c}
                 </option>
               ))}

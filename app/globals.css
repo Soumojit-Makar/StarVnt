@@ -50,6 +50,18 @@
     background: rgba(249, 115, 22, 0.3);
     color: #fff;
   }
+
+  /* Force dark color-scheme so native dropdowns/inputs use OS dark mode */
+  select,
+  input,
+  textarea {
+    color-scheme: dark;
+  }
+
+  select option {
+    background-color: #1a1a1a;
+    color: #ffffff;
+  }
 }
 
 @layer components {
