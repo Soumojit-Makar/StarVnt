@@ -1,0 +1,111 @@
+/* app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-brand: #f97316;
+    --color-brand-dim: rgba(249, 115, 22, 0.12);
+    --color-surface: #0a0a0a;
+    --color-surface-1: #111111;
+    --color-surface-2: #1a1a1a;
+    --color-surface-3: #222222;
+    --color-border: rgba(255, 255, 255, 0.07);
+    --color-border-hover: rgba(255, 255, 255, 0.12);
+    --color-text-muted: rgba(255, 255, 255, 0.4);
+    --color-text-secondary: rgba(255, 255, 255, 0.65);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  ::selection {
+    background: rgba(249, 115, 22, 0.3);
+    color: #fff;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-[#111111] border border-white/[0.06] rounded-2xl;
+  }
+
+  .btn-primary {
+    @apply bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-xl px-5 py-2.5 transition-all duration-200 text-sm inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-white/[0.06] hover:bg-white/[0.1] text-white font-medium rounded-xl px-5 py-2.5 transition-all duration-200 text-sm inline-flex items-center gap-2 border border-white/[0.08];
+  }
+
+  .btn-ghost {
+    @apply text-white/60 hover:text-white hover:bg-white/[0.06] font-medium rounded-xl px-4 py-2 transition-all duration-200 text-sm inline-flex items-center gap-2;
+  }
+
+  .input {
+    @apply bg-white/[0.04] border border-white/[0.08] text-white placeholder-white/30 rounded-xl px-4 py-2.5 text-sm w-full focus:outline-none focus:ring-1 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200;
+  }
+
+  .label {
+    @apply text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5 block;
+  }
+
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border;
+  }
+
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-white/50 hover:text-white hover:bg-white/[0.06];
+  }
+
+  .nav-item-active {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium bg-brand-500/10 text-brand-400 border border-brand-500/20;
+  }
+
+  .shimmer {
+    background: linear-gradient(90deg, #1a1a1a 25%, #222 50%, #1a1a1a 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .page-fade {
+    animation: fadeIn 0.35s ease-out forwards;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
