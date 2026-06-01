@@ -5,6 +5,8 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
+      role: "VENDOR" | "ADMIN";
+      accountStatus: "ACTIVE" | "SUSPENDED" | "PENDING";
     } & DefaultSession["user"];
   }
 }

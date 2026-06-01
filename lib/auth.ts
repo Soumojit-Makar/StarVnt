@@ -1,5 +1,4 @@
 // lib/auth.ts
-
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
@@ -9,108 +8,65 @@ import { loginSchema } from "./validations";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
-
-  session: {
-    strategy: "jwt",
-  },
-
-  pages: {
-    signIn: "/login",
-  },
-
+  session: { strategy: "jwt" },
+  pages: { signIn: "/login" },
   providers: [
     Credentials({
       name: "credentials",
-
       credentials: {
-        email: {
-          label: "Email",
-          type: "email",
-        },
-        password: {
-          label: "Password",
-          type: "password",
-        },
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
-
       async authorize(credentials) {
-        try {
-          console.log("================================");
-          console.log("Incoming credentials:", credentials);
+        const parsed = loginSchema.safeParse(credentials);
+        if (!parsed.success) return null;
 
-          const parsed = loginSchema.safeParse({
-            email: credentials?.email?.toString().trim(),
-            password: credentials?.password?.toString().trim(),
-          });
+        const user = await prisma.user.findUnique({
+          where: { email: parsed.data.email },
+          select: { id: true, email: true, name: true, image: true, password: true, role: true, accountStatus: true },
+        });
+        if (!user) return null;
 
-          if (!parsed.success) {
-            console.log("Schema validation failed:");
-            console.log(parsed.error.flatten());
-            return null;
-          }
-
-          console.log("Parsed email:", parsed.data.email);
-
-          const user = await prisma.user.findUnique({
-            where: {
-              email: parsed.data.email,
-            },
-          });
-
-          console.log("User found:", !!user);
-
-          if (!user) {
-            console.log("User does not exist");
-            return null;
-          }
-
-          console.log("Stored hash:", user.password);
-
-          const passwordMatch = await bcrypt.compare(
-            parsed.data.password,
-            user.password
-          );
-
-          console.log("Password match:", passwordMatch);
-
-          if (!passwordMatch) {
-            console.log("Password mismatch");
-            return null;
-          }
-
-          console.log("Login successful");
-
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            image: user.image,
-          };
-        } catch (error) {
-          console.error("Authorize error:", error);
-          return null;
+        // Block suspended / pending accounts
+        if (user.accountStatus === "SUSPENDED") {
+          throw new Error("SUSPENDED");
         }
+        if (user.accountStatus === "PENDING") {
+          throw new Error("PENDING");
+        }
+
+        const passwordMatch = await bcrypt.compare(parsed.data.password, user.password);
+        if (!passwordMatch) return null;
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+          role: user.role,
+          accountStatus: user.accountStatus,
+        };
       },
     }),
   ],
-
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        // @ts-expect-error – extended user fields
+        token.role = user.role;
+        // @ts-expect-error – extended user fields
+        token.accountStatus = user.accountStatus;
       }
-
       return token;
     },
-
     async session({ session, token }) {
-      if (session.user && token.id) {
+      if (token?.id) {
         session.user.id = token.id as string;
+        session.user.role = (token.role as "VENDOR" | "ADMIN") ?? "VENDOR";
+        session.user.accountStatus = (token.accountStatus as "ACTIVE" | "SUSPENDED" | "PENDING") ?? "ACTIVE";
       }
-
       return session;
     },
   },
-
-  debug: true,
 });

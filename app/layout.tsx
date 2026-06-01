@@ -1,12 +1,13 @@
 // app/layout.tsx
 import type { Metadata } from "next";
-import { Syne } from "next/font/google";
+import { Syne ,Inter} from "next/font/google";
 import localFont from "next/font/local";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
-import { Inter } from "next/font/google";
 const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-inter",
+  weight: ["400", "500", "600", "700", "800"],
 });
 // const geistSans = localFont({
 //   src: "./fonts/GeistVF.woff",
@@ -36,7 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="dark">
       <body
-        className={` ${inter.className} ${syne.variable} font-sans bg-[#0a0a0a] text-white antialiased`}
+        className={`${inter.className} ${syne.variable} font-sans bg-[#0a0a0a] text-white antialiased`}
       >
         {children}
         <Toaster

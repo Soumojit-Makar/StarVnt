@@ -15,10 +15,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
   });
 
   const vendor = {
-    name: profile?.vendorName || session.user.name || "Vendor",
-    email: session.user.email || "",
-    image: profile?.imageUrl || session.user.image || null,
+    name:     profile?.vendorName || session.user.name || "Vendor",
+    email:    session.user.email || "",
+    image:    profile?.imageUrl || session.user.image || null,
     category: profile?.category || "Event Management",
+    role:     session.user.role || "VENDOR",
   };
 
   return (
@@ -26,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <Sidebar vendor={vendor} />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <TopNav vendor={vendor} />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-7">
           <div className="max-w-7xl mx-auto page-fade">{children}</div>
         </main>
       </div>

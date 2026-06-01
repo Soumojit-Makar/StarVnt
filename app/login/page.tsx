@@ -49,6 +49,12 @@ export default function LoginPage() {
               <span className="text-white/50 font-mono">vendor@starvnt.com</span> /{" "}
               <span className="text-white/50 font-mono">Vendor@123</span>
             </p>
+           <p className="text-xs text-white/30 text-center">
+              Admin Demo credentials —{" "}
+              <span className="text-white/50 font-mono">admin@starvnt.com</span> /{" "}
+              <span className="text-white/50 font-mono">Admin@123</span>
+            </p>
+
           </div>
         </div>
       </div>

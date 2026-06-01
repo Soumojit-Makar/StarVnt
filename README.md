@@ -1,32 +1,98 @@
 # ⭐ StarVnt Vendor Booking Dashboard
 
-A production-ready vendor management dashboard built for event and entertainment booking companies. Vendors can log in, manage their profile, handle event inquiries, update booking statuses, and track performance analytics.
+Production-ready vendor management dashboard with full RBAC, manual calendar events, admin panel, and rich analytics.
 
 ---
 
-## ✨ Features
+## ✨ Feature Checklist
 
-- **🔐 Authentication** — Secure email/password login with NextAuth.js, JWT sessions, bcrypt hashing
-- **📊 Dashboard Analytics** — Real-time stats: total inquiries, new requests, confirmed bookings, upcoming events
-- **📋 Inquiry Management** — Full listing with filter by status, sortable table, paginated results
-- **🔍 Inquiry Detail** — Complete client info view with one-click status updates
-- **👤 Vendor Profile** — Editable profile with name, category, location, contact, bio, and image
-- **📱 Fully Responsive** — Sidebar on desktop, drawer on mobile, optimised for all screen sizes
-- **⚡ Server Actions** — Type-safe, validated server actions for all mutations
-- **🎨 Modern Dark UI** — Custom design with Syne font, brand orange accent, animated transitions
-- **🔔 Toast Notifications** — Success/error feedback for all user actions
-- **💾 Seed Data** — 10 realistic sample inquiries and activity logs for testing
+| Feature | Status |
+|---|---|
+| Email/password auth with bcrypt | ✅ |
+| JWT sessions via NextAuth v5 | ✅ |
+| Role-Based Access Control (RBAC) | ✅ |
+| Vendor dashboard (overview, stats, activity) | ✅ |
+| Inquiry management (list, detail, status update) | ✅ |
+| Interactive Event Calendar | ✅ |
+| **Manual event add / edit / delete** | ✅ |
+| Analytics (charts, KPIs, revenue table) | ✅ |
+| Vendor profile editor | ✅ |
+| Settings (password, notifications, danger zone) | ✅ |
+| Help & Support (FAQ, contact form) | ✅ |
+| **Admin panel (vendor management, all inquiries)** | ✅ |
+| **Suspended account gate page** | ✅ |
+| Fully responsive (mobile drawer + desktop sidebar) | ✅ |
+| Loading skeletons for all routes | ✅ |
+
+---
+
+## 🔐 RBAC — Role-Based Access Control
+
+### Roles
+
+| Role | Description |
+|---|---|
+| `VENDOR` | Default role. Can manage own profile, inquiries, and calendar events. |
+| `ADMIN` | Can view all vendors, change account status, view all inquiries, and access `/admin/*`. |
+
+### Account Statuses
+
+| Status | Effect |
+|---|---|
+| `ACTIVE` | Normal access |
+| `PENDING` | Cannot log in until activated |
+| `SUSPENDED` | Redirected to `/suspended` page after login |
+
+### Permission Map (`lib/rbac.ts`)
+
+```
+inquiry:read:own      → VENDOR, ADMIN
+inquiry:update:own    → VENDOR, ADMIN
+inquiry:read:all      → ADMIN
+inquiry:update:all    → ADMIN
+profile:update:own    → VENDOR, ADMIN
+event:create          → VENDOR, ADMIN
+event:update:own      → VENDOR, ADMIN
+event:delete:own      → VENDOR, ADMIN
+analytics:own         → VENDOR, ADMIN
+user:list             → ADMIN
+user:suspend          → ADMIN
+admin:access          → ADMIN
+```
+
+Every server action calls `requirePermission(session.user.role, "permission")` before executing.
+
+---
+
+## 📅 Manual Calendar Events
+
+Vendors can add personal/operational events directly to the calendar (site visits, meetings, reminders) that are independent of client inquiries.
+
+**From the Calendar page:**
+- Click **"+ Add Event"** button (top-right of calendar)
+- Click the **"+"** icon in the day detail panel  
+- Any day on the calendar grid opens pre-filled with that date
+
+**Each manual event has:**
+- Title (required)
+- Date + optional End Date
+- Location
+- Notes/Description
+- Color label: Purple · Rose · Sky · Amber
+
+**Edit/Delete:** Click the pencil icon on any manual event in the day panel.
 
 ---
 
 ## 🛠 Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
+|---|---|
 | Framework | Next.js 14 (App Router) |
 | Language | TypeScript |
-| Styling | Tailwind CSS |
-| Auth | NextAuth.js v5 (Auth.js) |
+| Styling | Tailwind CSS — dark theme, CSS custom properties |
+| Auth | NextAuth.js v5 (JWT strategy) |
+| RBAC | Custom permission system (`lib/rbac.ts`) |
 | ORM | Prisma |
 | Database | PostgreSQL |
 | Validation | Zod |
@@ -39,220 +105,99 @@ A production-ready vendor management dashboard built for event and entertainment
 ## 🗄 Database Schema
 
 ```
-User
-├── id, email, password, name
-├── VendorProfile (1:1)
-│   ├── vendorName, category, location, phone
-│   ├── description, imageUrl, rating, totalEvents
-├── EventInquiry (1:many)
-│   ├── clientName, clientEmail, clientPhone
-│   ├── eventType, eventDate, eventLocation
-│   ├── guestCount, budget, message
-│   └── status: NEW | CONTACTED | CONFIRMED | REJECTED
-└── ActivityLog (1:many)
-    ├── action, description, metadata
+User              role: VENDOR|ADMIN  accountStatus: ACTIVE|SUSPENDED|PENDING
+  └── VendorProfile
+  └── EventInquiry[]     status: NEW|CONTACTED|CONFIRMED|REJECTED
+  └── ManualEvent[]      color: purple|rose|sky|amber
+  └── ActivityLog[]
+  └── Session[], Account[]
 ```
 
 ---
 
-## 🚀 Setup Instructions
+## 🚀 Setup
 
-### Prerequisites
-
-- Node.js 18+
-- PostgreSQL 14+
-- npm or yarn
-
-### 1. Clone the Repository
-
+### 1. Install
 ```bash
-git clone https://github.com/your-username/starvnt-dashboard.git
-cd starvnt-dashboard
+git clone <repo> && cd starvnt && npm install
 ```
 
-### 2. Install Dependencies
-
-```bash
-npm install
-```
-
-### 3. Configure Environment Variables
-
+### 2. Environment
 ```bash
 cp .env.example .env.local
+# Fill in DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL
 ```
 
-Edit `.env.local`:
-
-```env
-DATABASE_URL="postgresql://username:password@localhost:5432/starvnt_db"
-NEXTAUTH_SECRET="your-secret-here"
-NEXTAUTH_URL="http://localhost:3000"
-```
-
-Generate a secret:
+### 3. Database
 ```bash
-openssl rand -base64 32
-```
-
-### 4. Setup Database
-
-```bash
-# Generate Prisma client
 npm run db:generate
-
-# Push schema to database
-npm run db:push
-
-# Or use migrations (recommended for production)
-npm run db:migrate
-```
-
-### 5. Seed Demo Data
-
-```bash
+npm run db:push       # or db:migrate for production
 npm run db:seed
 ```
 
-### 6. Start Development Server
-
+### 4. Run
 ```bash
-npm run dev
+npm run dev   # → http://localhost:3000
 ```
-
-Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
 ## 🔑 Demo Credentials
 
-| Field | Value |
-|-------|-------|
-| Email | `vendor@starvnt.com` |
-| Password | `Vendor@123` |
+| Role | Email | Password |
+|---|---|---|
+| **Vendor** | `vendor@starvnt.com` | `Vendor@123` |
+| **Admin**  | `admin@starvnt.com`  | `Admin@123`  |
 
 ---
 
-## 📁 Project Structure
+## 📁 Structure
 
 ```
-starvnt-dashboard/
-├── app/
-│   ├── api/auth/[...nextauth]/   # Auth.js route handler
-│   ├── login/                    # Login page
-│   ├── dashboard/
-│   │   ├── layout.tsx            # Dashboard shell (sidebar + topnav)
-│   │   ├── page.tsx              # Overview / analytics
-│   │   ├── loading.tsx           # Skeleton loader
-│   │   ├── profile/
-│   │   │   └── page.tsx          # Vendor profile editor
-│   │   └── inquiries/
-│   │       ├── page.tsx          # Inquiry list with filters
-│   │       └── [id]/
-│   │           └── page.tsx      # Inquiry detail + status update
-│   ├── globals.css
-│   ├── layout.tsx                # Root layout with fonts + toaster
-│   └── not-found.tsx
-├── components/
-│   ├── auth/
-│   │   └── LoginForm.tsx
-│   └── dashboard/
-│       ├── Sidebar.tsx
-│       ├── TopNav.tsx
-│       ├── WelcomeBanner.tsx
-│       ├── StatsGrid.tsx
-│       ├── RecentActivity.tsx
-│       ├── QuickActions.tsx
-│       ├── InquiriesFilter.tsx
-│       ├── InquiriesTable.tsx
-│       ├── TablePagination.tsx
-│       ├── InquiryDetail.tsx
-│       ├── ProfileCard.tsx
-│       └── ProfileForm.tsx
-├── lib/
-│   ├── auth.ts                   # NextAuth config
-│   ├── prisma.ts                 # Prisma client singleton
-│   ├── actions.ts                # Server actions
-│   ├── validations.ts            # Zod schemas
-│   └── utils.ts                  # Helper functions
-├── prisma/
-│   ├── schema.prisma             # Database models
-│   └── seed.ts                   # Demo data seeder
-├── types/
-│   └── next-auth.d.ts            # Session type augmentation
-├── middleware.ts                  # Route protection
-├── next.config.ts
-├── tailwind.config.ts
-├── vercel.json
-└── .env.example
+app/
+  login/                  # Public auth page
+  suspended/              # Account suspended gate
+  dashboard/              # Vendor portal (role=VENDOR)
+    page.tsx              # Overview
+    inquiries/            # List + [id] detail
+    calendar/             # Interactive calendar + manual events
+    analytics/            # Charts, KPIs, revenue table
+    profile/              # Edit profile
+    settings/             # Password, notifications, danger zone
+    support/              # FAQ + contact form
+  admin/                  # Admin portal (role=ADMIN only)
+    page.tsx              # Admin overview
+    vendors/              # Vendor management + status control
+    inquiries/            # Platform-wide inquiry view
+
+components/
+  auth/LoginForm.tsx
+  dashboard/              # All vendor portal components
+  admin/                  # Admin-specific components
+
+lib/
+  auth.ts                 # NextAuth config (role + accountStatus in JWT)
+  rbac.ts                 # Permission definitions + requirePermission()
+  actions.ts              # Server actions (all RBAC-gated)
+  prisma.ts / utils.ts / validations.ts
+
+prisma/
+  schema.prisma           # 7 models including ManualEvent
+  seed.ts                 # 1 admin + 1 vendor, 16 inquiries, 8 manual events
+
+middleware.ts             # Route protection + role-based redirects
 ```
 
 ---
 
-## 🔧 Available Scripts
+## 🌐 Deploy to Vercel
 
-```bash
-npm run dev          # Start dev server
-npm run build        # Production build
-npm run start        # Start production server
-npm run db:generate  # Generate Prisma client
-npm run db:push      # Push schema (no migration history)
-npm run db:migrate   # Create and apply migration
-npm run db:seed      # Seed demo data
-npm run db:studio    # Open Prisma Studio
-```
-
----
-
-## 🌐 Deployment to Vercel
-
-### 1. Push to GitHub
-
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/your-username/starvnt-dashboard.git
-git push -u origin main
-```
-
-### 2. Connect to Vercel
-
-1. Go to [vercel.com](https://vercel.com) and import your repository
-2. Add environment variables in Vercel dashboard:
-   - `DATABASE_URL` — your production PostgreSQL URL
-   - `NEXTAUTH_SECRET` — a secure random string
-   - `NEXTAUTH_URL` — your production domain (e.g. `https://starvnt.vercel.app`)
-
-### 3. Database Options
-
-- **Vercel Postgres** — `vercel postgres create`
-- **Supabase** — free tier, great for hobby projects
-- **Neon** — serverless Postgres, generous free tier
-- **Railway** — simple setup with free tier
-
-### 4. Post-Deploy
-
-After deploy, run migrations on production:
-```bash
-npx prisma migrate deploy
-npm run db:seed  # optional: seed demo data
-```
-
----
-
-## 📸 Screenshots
-
-> Add screenshots of:
-> - Login page
-> - Dashboard overview
-> - Inquiries list
-> - Inquiry detail with status update
-> - Vendor profile page
-> - Mobile responsive views
+1. Push to GitHub → Import at vercel.com
+2. Set env vars: `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`
+3. Vercel auto-runs `prisma generate && next build`
+4. Post-deploy: `npx prisma migrate deploy && npm run db:seed`
 
 ---
 
 ## 📄 License
-
 MIT © StarVnt 2024
